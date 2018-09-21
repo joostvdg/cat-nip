@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./webserver"
+	"github.com/joostvdg/cat-nip/webserver"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/joostvdg/cat/application"
