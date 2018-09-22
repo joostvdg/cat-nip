@@ -15,7 +15,7 @@ import (
 
 // WebserverData is a wrapper for the page title and discovered docker Stacks
 type WebserverData struct {
-	Title      string
+	Title        string
 	Applications []application.Application
 }
 

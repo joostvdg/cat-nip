@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/joostvdg/cat-nip/webserver"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/joostvdg/cat-nip/webserver"
 	"github.com/joostvdg/cat/application"
 	"os"
 	"os/signal"
@@ -54,7 +54,7 @@ func main() {
 	fmt.Printf("-----------------\n")
 }
 
-func getApplications() []application.Application{
+func getApplications() []application.Application {
 	apps := make([]application.Application, 0, 1)
 	app1 := application.Application{
 		Name:        "Maven Demo Library",
@@ -63,8 +63,8 @@ func getApplications() []application.Application{
 		Namespace:   "joostvdg",
 		ArtifactIDs: []string{"gav://com.github.joostvdg.demo:maven-demo-lib:0.1.1"},
 		Sources:     []string{"https://github.com/joostvdg/maven-demo-lib.git"},
-		Labels:      []application.Label{ application.Label{Key: "Category", Value: "BuildTool"}},
-		Annotations: []application.Annotation { application.Annotation{ Key: "MetricsGroup", Value: "CI", Origin: "com.github.joostvdg"}},
+		Labels:      []application.Label{{Key: "Category", Value: "BuildTool"}},
+		Annotations: []application.Annotation{{Key: "MetricsGroup", Value: "CI", Origin: "com.github.joostvdg"}},
 	}
 	apps = append(apps, app1)
 
@@ -75,8 +75,8 @@ func getApplications() []application.Application{
 		Namespace:   "CI",
 		ArtifactIDs: []string{"https://registry.hub.docker.com/library/jenkins@sha256:81040e35ee59322a02f67ca2584f814d543d5f2f5d361fb8bf4f9e0046f3e809"},
 		Sources:     []string{"https://github.com/jenkinsci/jenkins.git"},
-		Labels:      []application.Label{ application.Label{Key: "Category", Value: "BuildTool"}},
-		Annotations: []application.Annotation { application.Annotation{ Key: "MetricsGroup", Value: "CI", Origin: "com.github.joostvdg"}},
+		Labels:      []application.Label{{Key: "Category", Value: "BuildTool"}},
+		Annotations: []application.Annotation{{Key: "MetricsGroup", Value: "CI", Origin: "com.github.joostvdg"}},
 	}
 	apps = append(apps, app2)
 
