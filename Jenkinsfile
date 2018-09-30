@@ -4,12 +4,12 @@ pipeline {
     stages {
         stage('Test Docker Version') {
             steps {
-                sh 'docker versions'
+                sh 'docker version'
             }
         }
         stage('Build Docker') {
             steps {
-                sh 'docker image build -t catnip-${env.BRANCH_NAME} .'
+                sh "docker image build -t catnip-${env.BRANCH_NAME} ."
             }
         }
         stage('Tag & Push Docker') {
@@ -21,8 +21,8 @@ pipeline {
             }
             steps {
                 sh 'docker login -u ${DOCKERHUB_USR} -p ${DOCKERHUB_PSW}'
-                sh 'docker image tag catnip-${env.BRANCH_NAME} caladreas/catnip-${env.BRANCH_NAME}'
-                sh 'docker image push caladreas/catnip-${env.BRANCH_NAME}'
+                sh "docker image tag catnip-${env.BRANCH_NAME} caladreas/catnip-${env.BRANCH_NAME}"
+                sh "docker image push caladreas/catnip-${env.BRANCH_NAME}"
             }
         }
     }
