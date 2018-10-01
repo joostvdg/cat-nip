@@ -60,7 +60,8 @@ type Server struct {
 //   when graceful shutdown is completed a true is returned
 func StartServer(port string, data *WebserverData, c chan bool) {
 	router := mux.NewRouter()
-	router.HandleFunc("/", data.rootHandler).Methods("GET")
+	router.HandleFunc("/", data.rootHandler)
+	router.HandleFunc("/health", HandleHealthCheck)
 	listenAddress := fmt.Sprintf(":%s", port)
 	server := &http.Server{Addr: listenAddress, Handler: router}
 	go func() {
