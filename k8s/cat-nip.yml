@@ -17,9 +17,8 @@ metadata:
 spec:
   selector:
     app: catnip
-    system: cat
     distribution: ui
-    language: go
+    system: cat
   ports:
   - name: http
     port: 80
@@ -52,6 +51,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: catnip
+  namespace: cat
   labels:
     app: catnip
     distribution: ui
@@ -91,5 +91,5 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 10
           periodSeconds: 10
-          successThreshold: 2
+          successThreshold: 1
           timeoutSeconds: 5
