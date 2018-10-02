@@ -20,7 +20,7 @@ pipeline {
                 parallel(
                         Sonar: {
                             sh """
-                        docker run -ti -v \$(pwd):/root/src newtmitch/sonar-scanner sonar-scanner \
+                        docker run -v \$(pwd):/root/src newtmitch/sonar-scanner sonar-scanner \
                           -Dsonar.projectName=cat-nip
                           -Dsonar.projectKey=joostvdg_cat-nip \
                           -Dsonar.organization=joostvdg-github \
