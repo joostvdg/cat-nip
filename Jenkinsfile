@@ -1,6 +1,9 @@
 
 pipeline {
     agent { label 'docker' }
+    libraries {
+        lib('jenkins-pipeline-library@master')
+    }
     stages {
         stage('Test Docker Version') {
             steps {
