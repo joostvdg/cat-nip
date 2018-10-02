@@ -7,6 +7,22 @@ pipeline {
                 sh 'docker version'
             }
         }
+        stage('Sonar') {
+            environment {
+                SONARCLOUD_TOKEN = credentials('sonarcloud')
+            }
+            steps {
+                sh """
+                docker run -ti -v \$(pwd):/root/src newtmitch/sonar-scanner sonar-scanner \
+                  -Dsonar.projectName=cat-nip
+                  -Dsonar.projectKey=joostvdg_cat-nip \
+                  -Dsonar.organization=joostvdg-github \
+                  -Dsonar.sources=. \
+                  -Dsonar.host.url=https://sonarcloud.io \
+                  -Dsonar.login=${SONARCLOUD_TOKEN}
+                """
+            }
+        }
         stage('Build Docker') {
             steps {
                 sh "docker image build -t catnip-${env.BRANCH_NAME} ."
