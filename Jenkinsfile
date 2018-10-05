@@ -22,8 +22,10 @@ pipeline {
         stage('Prepare') {
             steps {
                 script {
-                    CHART_VERSION = readYaml('helm/cat-nip/Chart.yml').version
-                    VERSION = readYaml('jenkins.yml').version
+                    def chart = readYaml file: 'helm/cat-nip/Chart.yml'
+                    CHART_VERSION = chart.version
+                    def jenkinsConfig = readYaml file: 'jenkins.yml'
+                    VERSION = jenkinsConfig.version
                 }
             }
         }
