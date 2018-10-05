@@ -11,12 +11,20 @@ pipeline {
     environment {
         CHART_NAME = 'cat-nip'
         CM_ADDR = 'https://charts.kearos.net/'
-        CHART_VERSION = 'v0.1.0'
+        VERSION = ''
+        CHART_VERSION = ''
+        DOCKER_IMAGE_NAME = 'cat-nip'
+        DOCKER_REPO_NAME = 'caladreas'
+        DOCKER_IMAGE_TAG = ''
+        FULL_IMAGE_NAME = ''
     }
     stages {
-        stage('Build Docker') {
+        stage('Prepare') {
             steps {
-                sh "docker image build -t catnip-${env.BRANCH_NAME} ."
+                script {
+                    CHART_VERSION = readYaml('helm/cat-nip/Chart.yml').version
+                    VERSION = readYaml('jenkins.yml').version
+                }
             }
         }
         stage('Analysis') {
@@ -38,34 +46,43 @@ pipeline {
                         },
                         DockerLint: {
                             dockerfileLint()
-                        },
-                        Anchore: {
-                            anchoreScan("catnip-${env.BRANCH_NAME}")
                         }
                 )
             }
         }
-        stage('Tag & Push Docker') {
-            when {
-                branch 'master'
+        stage('Build Docker') {
+            steps {
+                script {
+                    DOCKER_IMAGE_TAG = gitNextSemverTag(VERSION) + "${env.BRANCH_NAME}"
+                    FULL_IMAGE_NAME = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                }
+                sh 'docker image build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} .'
             }
-            environment { 
-                DOCKERHUB = credentials('dockerhub') 
+        }
+        stage('Tag & Push Docker') {
+            environment {
+                DOCKERHUB = credentials('dockerhub')
             }
             steps {
                 sh 'docker login -u ${DOCKERHUB_USR} -p ${DOCKERHUB_PSW}'
-                sh "docker image tag catnip-${env.BRANCH_NAME} caladreas/catnip-${env.BRANCH_NAME}"
-                sh "docker image push caladreas/catnip-${env.BRANCH_NAME}"
+                sh 'docker image tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${FULL_IMAGE_NAME}'
+                sh 'docker image push ${FULL_IMAGE_NAME}'
+            }
+        }
+        stage('Anchore Validation') {
+            steps {
+                anchoreScan(FULL_IMAGE_NAME)
             }
         }
         stage('Helm Chart update') {
+            when {
+                branch 'master'
+            }
             environment {
                 CM = credentials('chartmuseum')
             }
             steps {
-                script {
-                    CHART_VERSION = readYaml('helm/Chart.yml').version
-                }
+
 //                container("helm") {
 //                    sh 'helm package helm/cat-nip'
 //                    sh 'curl -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" http://${CM_ADDR}/api/charts'
