@@ -1,7 +1,7 @@
 FROM golang:1.11 AS build
 WORKDIR /src
 ENV LAST_UPDATE=20180419
-ADD . /src
+COPY . /src
 RUN go get -d -v -t
 RUN go test --cover ./...
 RUN go build -v -tags netgo -o catnip
@@ -15,6 +15,6 @@ LABEL authors="Joost van der Griendt <joostvdg@gmail.com>"
 LABEL version="0.1.0"
 LABEL description="Docker image for CATNIP"
 CMD ["catnip"]
-ADD --from=build /src/catnip /usr/local/bin/catnip
-ADD index.html /srv/
+COPY --from=build /src/catnip /usr/local/bin/catnip
+COPY index.html /srv/
 RUN chmod +x /usr/local/bin/catnip
