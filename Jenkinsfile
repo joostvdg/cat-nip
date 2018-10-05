@@ -4,30 +4,7 @@ pipeline {
         durabilityHint 'PERFORMANCE_OPTIMIZED'
         timeout(5)
     }
-    agent {
-        kubernetes {
-            label 'catnip-build'
-            defaultContainer 'jnlp'
-            yaml """
-apiVersion: v1
-kind: Pod
-spec:
-containers:
-- name: helm
-image: vfarcic/helm:2.9.1
-command: ["cat"]
-tty: true
-- name: kubectl
-image: vfarcic/kubectl
-command: ["cat"]
-tty: true
-- name: golang
-image: golang:1.9
-command: ["cat"]
-tty: true
-"""
-        }
-    }
+    agent { label 'docker' }
     libraries {
         lib('jenkins-pipeline-library@master')
     }
@@ -38,13 +15,11 @@ tty: true
     }
     stages {
         stage('Build Docker') {
-            agent { label 'docker' }
             steps {
                 sh "docker image build -t catnip-${env.BRANCH_NAME} ."
             }
         }
         stage('Analysis') {
-            agent { label 'docker' }
             environment {
                 SONARCLOUD_TOKEN = credentials('sonarcloud')
             }
@@ -71,7 +46,6 @@ tty: true
             }
         }
         stage('Tag & Push Docker') {
-            agent { label 'docker' }
             when {
                 branch 'master'
             }
@@ -92,10 +66,12 @@ tty: true
                 script {
                     CHART_VERSION = readYaml('helm/Chart.yml').version
                 }
-                container("helm") {
-                    sh "helm package helm/cat-nip"
-                    sh 'curl -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" http://${CM_ADDR}/api/charts'
-                }
+//                container("helm") {
+//                    sh 'helm package helm/cat-nip'
+//                    sh 'curl -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" http://${CM_ADDR}/api/charts'
+//                }
+                sh 'docker run -v $(pwd):/root/src/ -w /root/src vfarcic/helm:2.9.1 helm package helm/cat-nip'
+                sh 'curl -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" http://${CM_ADDR}/api/charts'
             }
         }
     }
