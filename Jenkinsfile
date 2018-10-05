@@ -67,7 +67,7 @@ pipeline {
                     DOCKER_IMAGE_TAG = gitNextSemverTag(VERSION) + "${env.BRANCH_NAME}"
                     FULL_IMAGE_NAME = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                 }
-                sh 'docker image build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} .'
+                sh "docker image build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
             }
         }
         stage('Tag & Push Docker') {
@@ -103,9 +103,9 @@ pipeline {
             }
         }
     }
-    post {
-        always {
-            cleanWs notFailBuild: true
-        }
-    }
+//    post {
+//        always {
+//            cleanWs notFailBuild: true
+//        }
+//    }
 }
