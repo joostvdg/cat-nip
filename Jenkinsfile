@@ -19,6 +19,13 @@ pipeline {
         FULL_IMAGE_NAME = ''
     }
     stages {
+        stage('Test versions') {
+            steps {
+                sh 'uname -a'
+                sh 'docker version'
+                sh 'java -version'
+            }
+        }
         stage('Prepare') {
             steps {
                 script {
