@@ -4,7 +4,9 @@ pipeline {
         durabilityHint 'PERFORMANCE_OPTIMIZED'
         timeout(5)
     }
-    agent { label 'docker' }
+    agent {
+        label 'docker'
+    }
     libraries {
         lib('jenkins-pipeline-library@master')
     }
