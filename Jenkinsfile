@@ -28,7 +28,7 @@ pipeline {
                         Sonar: {
                             sh """
                         docker run -v \$(pwd):/root/src newtmitch/sonar-scanner sonar-scanner \
-                          -Dsonar.projectName=cat-nip
+                          -Dsonar.projectName=cat-nip \
                           -Dsonar.projectKey=joostvdg_cat-nip \
                           -Dsonar.organization=joostvdg-github \
                           -Dsonar.sources=. \
