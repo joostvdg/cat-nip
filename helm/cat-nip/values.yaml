@@ -1,0 +1,47 @@
+# Default values for mychart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+component: ui
+partOf: cat
+
+replicaCount: 3
+
+image:
+  repository: caladreas
+  name: catnip
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  limits:
+    cpu: 0.1
+    memory: 20Mi
+  requests:
+    cpu: 0.1
+    memory: 20Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

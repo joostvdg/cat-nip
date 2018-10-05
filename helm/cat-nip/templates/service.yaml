@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "cat-nip.name" . }}
+  labels:
+    app: {{ template "cat-nip.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: {{ .Values.component }}
+    part-of: {{ .Values.partOf }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "cat-nip.name" . }}
+    release: {{ .Release.Name }}
+    component: {{ .Values.component }}
+    part-of: {{ .Values.partOf }}

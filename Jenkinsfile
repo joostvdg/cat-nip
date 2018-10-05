@@ -1,21 +1,50 @@
-
 pipeline {
-    agent { label 'docker' }
+    options {
+        buildDiscarder logRotator(artifactDaysToKeepStr: '5', artifactNumToKeepStr: '5', daysToKeepStr: '5', numToKeepStr: '5')
+        durabilityHint 'PERFORMANCE_OPTIMIZED'
+        timeout(5)
+    }
+    agent {
+        kubernetes {
+            label 'catnip-build'
+            defaultContainer 'jnlp'
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+containers:
+- name: helm
+image: vfarcic/helm:2.9.1
+command: ["cat"]
+tty: true
+- name: kubectl
+image: vfarcic/kubectl
+command: ["cat"]
+tty: true
+- name: golang
+image: golang:1.9
+command: ["cat"]
+tty: true
+"""
+        }
+    }
     libraries {
         lib('jenkins-pipeline-library@master')
     }
+    environment {
+        CHART_NAME = 'cat-nip'
+        CM_ADDR = 'https://charts.kearos.net/'
+        CHART_VERSION = 'v0.1.0'
+    }
     stages {
-        stage('Test Docker Version') {
-            steps {
-                sh 'docker version'
-            }
-        }
         stage('Build Docker') {
+            agent { label 'docker' }
             steps {
                 sh "docker image build -t catnip-${env.BRANCH_NAME} ."
             }
         }
         stage('Analysis') {
+            agent { label 'docker' }
             environment {
                 SONARCLOUD_TOKEN = credentials('sonarcloud')
             }
@@ -42,6 +71,7 @@ pipeline {
             }
         }
         stage('Tag & Push Docker') {
+            agent { label 'docker' }
             when {
                 branch 'master'
             }
@@ -52,6 +82,20 @@ pipeline {
                 sh 'docker login -u ${DOCKERHUB_USR} -p ${DOCKERHUB_PSW}'
                 sh "docker image tag catnip-${env.BRANCH_NAME} caladreas/catnip-${env.BRANCH_NAME}"
                 sh "docker image push caladreas/catnip-${env.BRANCH_NAME}"
+            }
+        }
+        stage('Helm Chart update') {
+            environment {
+                CM = credentials('chartmuseum')
+            }
+            steps {
+                script {
+                    CHART_VERSION = readYaml('helm/Chart.yml').version
+                }
+                container("helm") {
+                    sh "helm package helm/cat-nip"
+                    sh 'curl -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" http://${CM_ADDR}/api/charts'
+                }
             }
         }
     }
