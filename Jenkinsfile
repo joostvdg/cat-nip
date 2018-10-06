@@ -46,16 +46,17 @@ pipeline {
                 parallel(
                         Sonar: {
                             sh """
-                        docker run --rm -v \$(pwd):/root/src newtmitch/sonar-scanner sonar-scanner \
-                          -Dsonar.projectName=cat-nip \
-                          -Dsonar.projectKey=joostvdg_cat-nip \
-                          -Dsonar.organization=joostvdg-github \
-                          -Dsonar.sources=. \
-                          -Dsonar.host.url=https://sonarcloud.io \
-                          -Dsonar.login=${SONARCLOUD_TOKEN} 
-                        """
-                            //\
-                            //                           && rm -rf .scannerwork/
+                            docker run --rm -v \$(pwd):/root/src \
+                            -v /tmp/.scannerwork:/root/src/.scannerwork \
+                            -v /tmp/.sonar:/root/src/.sonar \
+                            newtmitch/sonar-scanner sonar-scanner \
+                              -Dsonar.projectName=cat-nip \
+                              -Dsonar.projectKey=joostvdg_cat-nip \
+                              -Dsonar.organization=joostvdg-github \
+                              -Dsonar.sources=. \
+                              -Dsonar.host.url=https://sonarcloud.io \
+                              -Dsonar.login=${SONARCLOUD_TOKEN} 
+                            """
                         },
                         DockerLint: {
                             dockerfileLint()
