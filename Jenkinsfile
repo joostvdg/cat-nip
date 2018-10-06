@@ -52,7 +52,7 @@ pipeline {
                           -Dsonar.organization=joostvdg-github \
                           -Dsonar.sources=. \
                           -Dsonar.host.url=https://sonarcloud.io \
-                          -Dsonar.login=${SONARCLOUD_TOKEN}
+                          -Dsonar.login=${SONARCLOUD_TOKEN} \
                            && rm -rf .scannerwork/
                         """
                         },
