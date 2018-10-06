@@ -73,16 +73,19 @@ pipeline {
         stage('Tag & Push Docker') {
             environment {
                 DOCKERHUB = credentials('dockerhub')
+                IMAGE = "${DOCKER_IMAGE_NAME}"
+                TAG = "${DOCKER_IMAGE_TAG}"
+                FULL_NAME = "${FULL_IMAGE_NAME}"
             }
             steps {
                 sh 'docker login -u ${DOCKERHUB_USR} -p ${DOCKERHUB_PSW}'
-                sh 'docker image tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${FULL_IMAGE_NAME}'
-                sh 'docker image push ${FULL_IMAGE_NAME}'
+                sh 'docker image tag ${IMAGE}:${TAG} ${FULL_NAME}'
+                sh 'docker image push ${FULL_NAME}'
             }
         }
         stage('Anchore Validation') {
             steps {
-                anchoreScan(FULL_IMAGE_NAME)
+                anchoreScan("${FULL_IMAGE_NAME}")
             }
         }
         stage('Helm Chart update') {
