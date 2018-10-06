@@ -12,7 +12,7 @@ pipeline {
     }
     environment {
         CHART_NAME = 'cat-nip'
-        CM_ADDR = 'https://charts.kearos.net/'
+        CM_ADDR = 'https://charts.kearos.net'
         VERSION = ''
         CHART_VERSION = ''
         DOCKER_IMAGE_NAME = 'cat-nip'
@@ -102,7 +102,7 @@ pipeline {
 //                    sh 'curl -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" http://${CM_ADDR}/api/charts'
 //                }
                 sh 'docker run -v $(pwd):/root/src/ -w /root/src vfarcic/helm:2.9.1 helm package helm/cat-nip'
-                sh 'curl -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" http://${CM_ADDR}/api/charts'
+                sh 'curl -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" ${CM_ADDR}/api/charts'
             }
         }
     }
