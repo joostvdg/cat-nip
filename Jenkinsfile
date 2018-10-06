@@ -64,17 +64,6 @@ pipeline {
         stage('Build Docker') {
             steps {
                 script {
-                    // this does work
-//                    def gitTags = sh returnStdout: true, script: 'git tag -l v0.1.*'
-//                    echo "gitTags=$gitTags"
-//                    def tagsArray = gitTags.split('\n')
-//                    echo "tagsArray=$tagsArray"
-//                    def newVersion = gitNextSemverTag('0.1')
-//                    echo "newVersion=$newVersion"
-
-                    // this didn't
-                    // DOCKER_IMAGE_TAG = gitNextSemverTag(VERSION) + "${env.BRANCH_NAME}"
-                    // Maybe this does?
                     DOCKER_IMAGE_TAG = gitNextSemverTag("${VERSION}") + "${env.BRANCH_NAME}"
                     FULL_IMAGE_NAME = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                 }
