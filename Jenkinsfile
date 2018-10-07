@@ -98,9 +98,6 @@ pipeline {
                     branch 'master'
                     not {
                         expression {
-                            chartExists('https://charts.kearos.net/api/charts/cat-nip/v0.1.0', "200", 'chartmuseum', true)
-                        }
-                        expression {
                             chartExists("${CM_ADDR}", "${CHART_NAME}","${VERSION}", "200", "${CM_CREDS}", true)
                         }
                     }
