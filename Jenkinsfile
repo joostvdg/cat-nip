@@ -19,6 +19,7 @@ pipeline {
         DOCKER_REPO_NAME = 'caladreas'
         DOCKER_IMAGE_TAG = ''
         FULL_IMAGE_NAME = ''
+        CM_CREDS = 'chartmuseum'
     }
     stages {
         stage('Test versions') {
@@ -93,10 +94,20 @@ pipeline {
         }
         stage('Helm Chart update') {
             when {
-                branch 'master'
+                allOf {
+                    branch 'master'
+                    not {
+                        expression {
+                            chartExists('https://charts.kearos.net/api/charts/cat-nip/v0.1.0', "200", 'chartmuseum', true)
+                        }
+                        expression {
+                            chartExists("${CM_ADDR}", "${CHART_NAME}","${VERSION}", "200", "${CM_CREDS}", true)
+                        }
+                    }
+                }
             }
             environment {
-                CM = credentials('chartmuseum')
+                CM = credentials("${CM_CREDS}")
                 VERSION = "${CHART_VERSION}"
             }
             steps {
@@ -104,8 +115,8 @@ pipeline {
                 script {
                     def result = sh returnStdout: true, script: 'curl --insecure -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${VERSION}.tgz" ${CM_ADDR}/api/charts'
                     echo "Result=${result}"
-                    // validate result
-                    // move to library
+                    assert result == "{\"saved\":true}"
+                    // TODO: move to library
                 }
             }
         }
