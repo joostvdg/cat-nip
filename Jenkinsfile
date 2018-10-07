@@ -102,7 +102,7 @@ pipeline {
             steps {
                 sh 'docker run -v $(pwd):/root/src/ -w /root/src vfarcic/helm:2.9.1 helm package helm/cat-nip'
                 script {
-                    def result = sh returnStdout: true, 'curl --insecure -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${VERSION}.tgz" ${CM_ADDR}/api/charts'
+                    def result = sh returnStdout: true, script: 'curl --insecure -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${VERSION}.tgz" ${CM_ADDR}/api/charts'
                     echo "Result=${result}"
                     // validate result
                     // move to library
