@@ -97,21 +97,17 @@ pipeline {
             }
             environment {
                 CM = credentials('chartmuseum')
+                VERSION = "${CHART_VERSION}"
             }
             steps {
-
-//                container("helm") {
-//                    sh 'helm package helm/cat-nip'
-//                    sh 'curl -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" http://${CM_ADDR}/api/charts'
-//                }
                 sh 'docker run -v $(pwd):/root/src/ -w /root/src vfarcic/helm:2.9.1 helm package helm/cat-nip'
                 sh 'curl --insecure -u ${CM_USR}:${CM_PSW} --data-binary "@cat-nip-${CHART_VER}.tgz" ${CM_ADDR}/api/charts'
             }
         }
     }
-//    post {
-//        always {
-//            cleanWs notFailBuild: true
-//        }
-//    }
+    post {
+        always {
+            cleanWs notFailBuild: true
+        }
+    }
 }
