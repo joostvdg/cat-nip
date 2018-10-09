@@ -3,19 +3,19 @@
 import java.text.SimpleDateFormat
 
 currentBuild.displayName = new SimpleDateFormat("yy.MM.dd").format(new Date()) + "-" + env.BUILD_NUMBER
-env.REPO = "https://github.com/vfarcic/go-demo-3.git"
-env.IMAGE = "vfarcic/go-demo-3"
-env.ADDRESS = "go-demo-3-${env.BUILD_NUMBER}-${env.BRANCH_NAME}.acme.com"
-env.CM_ADDR = "cm.acme.com"
-env.TAG = "${currentBuild.displayName}"
-env.TAG_BETA = "${env.TAG}-${env.BRANCH_NAME}"
-env.CHART_VER = "0.0.1"
-env.CHART_NAME = "go-demo-3-${env.BUILD_NUMBER}-${env.BRANCH_NAME}"
+//env.REPO = "https://github.com/vfarcic/go-demo-3.git"
+//env.IMAGE = "vfarcic/go-demo-3"
+//env.ADDRESS = "go-demo-3-${env.BUILD_NUMBER}-${env.BRANCH_NAME}.acme.com"
+//env.CM_ADDR = "cm.acme.com"
+//env.TAG = "${currentBuild.displayName}"
+//env.TAG_BETA = "${env.TAG}-${env.BRANCH_NAME}"
+//env.CHART_VER = "0.0.1"
+//env.CHART_NAME = "go-demo-3-${env.BUILD_NUMBER}-${env.BRANCH_NAME}"
 
 
 def label = "jenkins-slave-${UUID.randomUUID().toString()}"
-def CHART_VERSION = chart.version
-def VERSION = jenkinsConfig.version
+def CHART_VERSION = ''
+def VERSION = ''
 def DOCKER_IMAGE_TAG = ''
 def FULL_IMAGE_NAME = ''
 def IMAGE = ''
