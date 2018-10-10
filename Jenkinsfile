@@ -113,8 +113,16 @@ spec:
                 container("helm") {
                     sh 'helm version'
                     sh 'helm ls'
-                    sh "helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG}"
-                    sh 'helm ls'
+                    withCredentials([file(credentialsId: 'letsencrypt-staging-ca', variable: 'CA_PEM')]) {
+                        withCredentials([usernamePassword(credentialsId: 'chartmuseum', passwordVariable: 'PSS', usernameVariable: 'USR')]) {
+                            sh "helm repo add chartmuseum https://charts.kearos.net --username ${USR} --password ${PSS}  --ca-file ${CA_PEM}"
+                        }
+                        sh 'helm repo list'
+                        sh 'helm repo update'
+                        sh "helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG}"
+                        sh 'helm ls'
+                    }
+
                 }
                 parallel Kubectl: {
                     container("kubectl") {
@@ -132,8 +140,10 @@ spec:
                     }
                 }
                 container("helm") {
-                    sh 'helm ls'
-                    sh 'helm delete cat-nip-staging --purge'
+                    withCredentials([file(credentialsId: 'letsencrypt-staging-ca', variable: 'CA_PEM')]) {
+                        sh 'helm ls'
+                        sh 'helm delete cat-nip-staging --purge'
+                    }
                 }
             } catch(e) {
                 error "Failed functional tests"
