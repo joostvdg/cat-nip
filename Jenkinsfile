@@ -42,10 +42,14 @@ spec:
     image: vfarcic/kubectl
     command: ["cat"]
     tty: true
-  - name: golang
-    image: golang:1.11
+  - name: zapcli
+    image: owasp/zap2docker-stable
     command: ["cat"]
     tty: true
+  - name: hey
+    image:  caladreas/rakyll-hey
+    command: ["cat"]
+    tty: true  
 """
 ) {
     node(label) {
@@ -100,9 +104,8 @@ spec:
         } // end node docker
         stage("func-test") {
             // TODO: deploy staging version via helm chart with current 'staging image tag'
-            // sh 'docker run -i --rm --name zapcli --network appregister_default owasp/zap2docker-stable zap-cli quick-scan --self-contained  --start-options \'-config api.disablekey=true\' http://backend:8888'
-            // docker run -i --rm --name zapcli owasp/zap2docker-stable zap-cli quick-scan -sc --start-options '-config api.disablekey=true' https://catnip.kearos.net
-            // kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never --rm -- quick-scan -sc --start-options '-config api.disablekey=true' https://catnip.kearos.net
+            // docker run -i --rm --name zapcli -v $(pwd):/tmp -w /tmp owasp/zap2docker-stable zap-cli quick-scan -f json -sc --start-options '-config api.disablekey=true' https://catnip.kearos.net
+            // kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options '-config api.disablekey=true' https://catnip.kearos.net
             // sh 'docker run -v $(pwd):/tmp -w /tmp caladreas/rakyll-hey hey -n 1000 -c 100 https://catnip.kearos.net/ > perf.txt'
             // sh 'cat perf.txt'
             // archiveArtifact 'perf.txt'
@@ -115,6 +118,14 @@ spec:
                 }
                 container("kubectl") {
                     sh 'kubectl version'
+                }
+                container("zapcli") {
+                    sh 'zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net > zap.json'
+                    archiveArtifacts 'zap.json'
+                }
+                container("hey") {
+                    sh 'hey -n 1000 -c 100 https://catnip.kearos.net/ > perf.txt'
+                    archiveArtifacts 'perf.txt'
                 }
                 container("helm") {
                     sh 'helm ls'
