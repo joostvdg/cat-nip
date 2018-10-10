@@ -129,9 +129,14 @@ spec:
                         sh 'kubectl version'
                     }
                 }, Zap: {
-                    container("zapcli") {
-                        sh 'zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net > zap.json'
+//                    container("zapcli") {
+//                        sh 'zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net > zap.json'
+//                        archiveArtifacts 'zap.json'
+//                    }
+                    container("kubectl") {
+                        sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net > zap.json'
                         archiveArtifacts 'zap.json'
+                        sh 'kubectl delete pod zapcli'
                     }
                 }, Hey: {
                     container("hey") {
