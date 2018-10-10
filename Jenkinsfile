@@ -166,9 +166,11 @@ spec:
         stage('Promote Image') {
             // TODO: retag image
             // push updated tagged image
+            // create git tag
         }
         stage('Update PROD') {
             // TODO: create PR for environment config
+            git 'https://github.com/joostvdg/environments.git'
             container('yq') {
                 script {
                     sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
