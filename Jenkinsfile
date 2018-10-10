@@ -147,13 +147,14 @@ spec:
                     }
                 }
             } catch(e) {
+                error "Failed functional tests"
+            } finally {
                 container("helm") {
                     withCredentials([file(credentialsId: 'letsencrypt-staging-ca', variable: 'CA_PEM')]) {
                         sh 'helm ls'
                         sh 'helm delete cat-nip-staging --purge'
                     }
                 }
-                error "Failed functional tests"
             }
         }
     } // end node random label
