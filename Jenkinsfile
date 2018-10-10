@@ -144,13 +144,13 @@ spec:
                         archiveArtifacts 'perf.txt'
                     }
                 }
+            } catch(e) {
                 container("helm") {
                     withCredentials([file(credentialsId: 'letsencrypt-staging-ca', variable: 'CA_PEM')]) {
                         sh 'helm ls'
                         sh 'helm delete cat-nip-staging --purge'
                     }
                 }
-            } catch(e) {
                 error "Failed functional tests"
             }
         }
