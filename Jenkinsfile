@@ -134,7 +134,9 @@ spec:
 //                        archiveArtifacts 'zap.json'
 //                    }
                     container("kubectl") {
-                        sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net > zap.json'
+                        sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net'
+                        sleep 30
+                        sh 'kubectl logs zapcli > zap.json'
                         archiveArtifacts 'zap.json'
                         sh 'kubectl delete pod zapcli'
                     }
