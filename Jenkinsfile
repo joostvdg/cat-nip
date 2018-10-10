@@ -24,7 +24,7 @@ def FULL_NAME = ''
 def DOCKER_IMAGE_TAG_PRD = ''
 def DOCKER_REPO_NAME = 'caladreas'
 def DOCKER_IMAGE_NAME = 'cat-nip'
-
+def scmVars
 // TODO: introduce specific namespace
 // TODO: introduce service account
 
@@ -60,7 +60,7 @@ spec:
     node(label) {
         node("docker") {
             stage('SCM & Prepare') {
-                checkout scm
+                scmVars = checkout scm
                 def chart = readYaml file: 'helm/cat-nip/Chart.yaml'
                 CHART_VERSION = chart.version
                 def jenkinsConfig = readYaml file: 'jenkins.yml'
@@ -108,13 +108,7 @@ spec:
                 anchoreScan("${FULL_IMAGE_NAME}")
             } // end stage
         } // end node docker
-        stage("func-test") {
-            // TODO: deploy staging version via helm chart with current 'staging image tag'
-            // docker run -i --rm --name zapcli -v $(pwd):/tmp -w /tmp owasp/zap2docker-stable zap-cli quick-scan -f json -sc --start-options '-config api.disablekey=true' https://catnip.kearos.net
-            // kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options '-config api.disablekey=true' https://catnip.kearos.net
-            // sh 'docker run -v $(pwd):/tmp -w /tmp caladreas/rakyll-hey hey -n 1000 -c 100 https://catnip.kearos.net/ > perf.txt'
-            // sh 'cat perf.txt'
-            // archiveArtifact 'perf.txt'
+        stage("Staging") {
             try {
                 container("helm") {
                     sh 'helm version'
@@ -136,11 +130,11 @@ spec:
                     }
                 }, Zap: {
 //                    container("zapcli") {
-//                        sh 'zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net > zap.json'
+//                        sh 'zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging > zap.json'
 //                        archiveArtifacts 'zap.json'
 //                    }
                     container("kubectl") {
-                        sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net'
+                        sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging'
                         sleep 30
                         sh 'kubectl logs zapcli > zap.json'
                         archiveArtifacts 'zap.json'
@@ -148,7 +142,7 @@ spec:
                     }
                 }, Hey: {
                     container("hey") {
-                        sh 'hey -n 1000 -c 100 https://catnip.kearos.net/ > perf.txt'
+                        sh 'hey -n 1000 -c 100 http://cat-nip-staging > perf.txt'
                         archiveArtifacts 'perf.txt'
                     }
                 }
@@ -167,10 +161,27 @@ spec:
             // TODO: retag image
             // push updated tagged image
             // create git tag
+            def STAGING = "${FULL_IMAGE_NAME}"
+            def PRD = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG_PRD}"
+            node('docker') {
+                withCredentials([usernamePassword(credentialsId: "dockerhub", usernameVariable: "USER", passwordVariable: "PASS")]) {
+                    sh "docker login -u $USER -p $PASS"
+                }
+                sh "docker image tag ${STAGING} ${PRD}"
+                sh "docker image push ${PRD}"
+            }
+        }
+        stage('Tag repo') {
+            gitRemoteConfigByUrl(scmVars.GIT_URL, 'githubtoken')
+            sh '''
+                git config --global user.email "jenkins@jenkins.io"
+                git config --global user.name "Jenkins"
+                '''
         }
         stage('Update PROD') {
             // TODO: create PR for environment config
-            git 'https://github.com/joostvdg/environments.git'
+            def gitInfo = git 'https://github.com/joostvdg/environments.git'
+            echo "${gitInfo}"
             container('yq') {
                 script {
                     sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
@@ -180,6 +191,11 @@ spec:
             }
             // just the jnlp containr (=default)
             sh 'git status'
+//            gitRemoteConfigByUrl(scmVars.GIT_URL, 'githubtoken')
+//            sh '''
+//                git config --global user.email "jenkins@jenkins.io"
+//                git config --global user.name "Jenkins"
+//                '''
         }
     } // end node random label
 } // end pod def
