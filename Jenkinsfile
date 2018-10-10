@@ -21,6 +21,8 @@ def FULL_IMAGE_NAME = ''
 def IMAGE = ''
 def TAG = ''
 def FULL_NAME = ''
+def DOCKER_REPO_NAME = 'caladreas'
+def DOCKER_IMAGE_NAME = 'cat-nip'
 
 // TODO: introduce specific namespace
 // TODO: introduce service account
@@ -97,15 +99,26 @@ spec:
             } // end stage
         } // end node docker
         stage("func-test") {
+            // TODO: deploy staging version via helm chart with current 'staging image tag'
+            // sh 'docker run -i --rm --name zapcli --network appregister_default owasp/zap2docker-stable zap-cli quick-scan --self-contained  --start-options \'-config api.disablekey=true\' http://backend:8888'
+            // docker run -i --rm --name zapcli owasp/zap2docker-stable zap-cli quick-scan -sc --start-options '-config api.disablekey=true' https://catnip.kearos.net
+            // kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never --rm -- quick-scan -sc --start-options '-config api.disablekey=true' https://catnip.kearos.net
+            // sh 'docker run -v $(pwd):/tmp -w /tmp caladreas/rakyll-hey hey -n 1000 -c 100 https://catnip.kearos.net/ > perf.txt'
+            // sh 'cat perf.txt'
+            // archiveArtifact 'perf.txt'
             try {
                 container("helm") {
                     sh 'helm version'
+                    sh 'helm ls'
+                    sh "helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG}"
+                    sh 'helm ls'
                 }
                 container("kubectl") {
                     sh 'kubectl version'
                 }
-                container("golang") {
-                    sh 'go version'
+                container("helm") {
+                    sh 'helm ls'
+                    sh 'helm delete cat-nip-staging --purge'
                 }
             } catch(e) {
                 error "Failed functional tests"
