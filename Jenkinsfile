@@ -22,10 +22,11 @@ def IMAGE = ''
 def TAG = ''
 def FULL_NAME = ''
 
+// TODO: introduce specific namespace
+// TODO: introduce service account
+
 podTemplate(
         label: label,
-        namespace: "go-demo-3-build",
-        serviceAccount: "build",
         yaml: """
 apiVersion: v1
 kind: Pod
