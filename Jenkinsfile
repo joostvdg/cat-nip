@@ -21,6 +21,7 @@ def FULL_IMAGE_NAME = ''
 def IMAGE = ''
 def TAG = ''
 def FULL_NAME = ''
+def DOCKER_IMAGE_TAG_PRD = ''
 def DOCKER_REPO_NAME = 'caladreas'
 def DOCKER_IMAGE_NAME = 'cat-nip'
 
@@ -41,6 +42,10 @@ spec:
   - name: kubectl
     image: vfarcic/kubectl
     command: ["cat"]
+    tty: true
+  - name: yq
+    image: mikefarah/yq
+    command: ['cat']
     tty: true
   - name: zapcli
     image: owasp/zap2docker-stable
@@ -83,7 +88,8 @@ spec:
                 }
             }
             stage('Build Docker') {
-                DOCKER_IMAGE_TAG = gitNextSemverTag("${VERSION}") + "${env.BRANCH_NAME}"
+                DOCKER_IMAGE_TAG_PRD = gitNextSemverTag("${VERSION}")
+                DOCKER_IMAGE_TAG =  "${DOCKER_IMAGE_TAG_PRD}" + "${env.BRANCH_NAME}"
                 FULL_IMAGE_NAME = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                 sh "docker image build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
             }
@@ -156,6 +162,22 @@ spec:
                     }
                 }
             }
+        } // end stage
+        stage('Promote Image') {
+            // TODO: retag image
+            // push updated tagged image
+        }
+        stage('Update PROD') {
+            // TODO: create PR for environment config
+            container('yq') {
+                script {
+                    sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
+                    sh "yq w -i cb/aws-eks/cat-nip/image-values.yml image.tag ${DOCKER_IMAGE_TAG_PRD}"
+                    sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
+                }
+            }
+            // just the jnlp containr (=default)
+            sh 'git status'
         }
     } // end node random label
 } // end pod def
