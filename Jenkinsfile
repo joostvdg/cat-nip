@@ -93,7 +93,7 @@ spec:
                 FULL_NAME = "${FULL_IMAGE_NAME}"
 
                 withCredentials([usernamePassword(credentialsId: "dockerhub", usernameVariable: "USER", passwordVariable: "PASS")]) {
-                    sh "sudo docker login -u $USER -p $PASS"
+                    sh "docker login -u $USER -p $PASS"
                 }
                 sh "docker image tag ${IMAGE}:${TAG} ${FULL_NAME}"
                 sh "docker image push ${FULL_NAME}"
@@ -116,16 +116,20 @@ spec:
                     sh "helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG}"
                     sh 'helm ls'
                 }
-                container("kubectl") {
-                    sh 'kubectl version'
-                }
-                container("zapcli") {
-                    sh 'zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net > zap.json'
-                    archiveArtifacts 'zap.json'
-                }
-                container("hey") {
-                    sh 'hey -n 1000 -c 100 https://catnip.kearos.net/ > perf.txt'
-                    archiveArtifacts 'perf.txt'
+                parallel Kubectl: {
+                    container("kubectl") {
+                        sh 'kubectl version'
+                    }
+                }, Zap: {
+                    container("zapcli") {
+                        sh 'zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' https://catnip.kearos.net > zap.json'
+                        archiveArtifacts 'zap.json'
+                    }
+                }, Hey: {
+                    container("hey") {
+                        sh 'hey -n 1000 -c 100 https://catnip.kearos.net/ > perf.txt'
+                        archiveArtifacts 'perf.txt'
+                    }
                 }
                 container("helm") {
                     sh 'helm ls'
