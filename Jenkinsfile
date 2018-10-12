@@ -122,11 +122,11 @@ spec:
             } // end stage
         } // end node docker
         stage('Update Chart') {
-            def chartExists = chartExists("${CM_ADDR}", "${CHART_NAME}","${CHART_VERSION}", "200", "${CM_CREDS}", true)
-            if (chartExists) {
-                echo "Chart already exists, not uploading"
-            } else {
-                container("helm") {
+            container("helm") {
+                def chartExists = chartExists("${CM_ADDR}", "${CHART_NAME}", "${CHART_VERSION}", "200", "${CM_CREDS}", true)
+                if (chartExists) {
+                    echo "Chart already exists, not uploading"
+                } else {
                     withCredentials([usernamePassword(credentialsId: 'chartmuseum', passwordVariable: 'PSS', usernameVariable: 'USR')]) {
                         sh 'helm package helm/cat-nip'
                         def result = sh returnStdout: true, script: "curl --insecure -u ${USR}:${PSS} --data-binary \"@cat-nip-${CHART_VERSION}.tgz\" ${CM_ADDR}/api/charts"
