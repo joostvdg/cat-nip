@@ -8,7 +8,7 @@ replicaCount: 3
 
 image:
   repository: caladreas
-  name: catnip
+  name: cat-nip
   tag: latest
   pullPolicy: IfNotPresent
 
