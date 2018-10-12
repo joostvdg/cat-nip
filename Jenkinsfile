@@ -156,7 +156,6 @@ spec:
                         sh 'helm ls'
                     }
                 }
-                input 'Let\'s Go!'
                 parallel Kubectl: {
                     container("kubectl") {
                         sh 'kubectl version'
@@ -226,6 +225,8 @@ spec:
             git commit -m "update ${CHART_NAME} to image  ${DOCKER_IMAGE_TAG_PRD}"
             git push origin ${branchName}
             """
+
+            // TODO: create PR
         }
     } // end node random label
 } // end pod def
