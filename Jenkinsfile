@@ -27,6 +27,7 @@ def FULL_NAME = ''
 def DOCKER_IMAGE_TAG_PRD = ''
 def DOCKER_REPO_NAME = 'caladreas'
 def DOCKER_IMAGE_NAME = 'cat-nip'
+def NEW_VERSION = ''
 
 def scmVars
 // TODO: introduce specific namespace
@@ -114,13 +115,18 @@ spec:
                 git config --global user.email "jenkins@jenkins.io"
                 git config --global user.name "Jenkins"
                 '''
-                def NEW_VERSION = gitNextSemverTag("${VERSION}")
+                NEW_VERSION = gitNextSemverTag("${VERSION}")
                 gitTag("v${NEW_VERSION}")
             }
             stage('Anchore Validation') {
                 anchoreScan("${FULL_IMAGE_NAME}")
             } // end stage
         } // end node docker
+        stage('Prepare Pod') {
+            checkout scm
+            // make sure we continue with the tag we've just created
+            sh "git checkout v${NEW_VERSION}"
+        }
         stage('Update Chart') {
             container("helm") {
                 def chartExists = chartExists("${CM_ADDR}", "${CHART_NAME}", "${CHART_VERSION}", "200", "${CM_CREDS}", true)
