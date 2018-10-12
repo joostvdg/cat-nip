@@ -134,7 +134,7 @@ spec:
 //                        archiveArtifacts 'zap.json'
 //                    }
                     container("kubectl") {
-                        sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging'
+                        sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging.build'
                         sleep 30
                         sh 'kubectl logs zapcli > zap.json'
                         archiveArtifacts 'zap.json'
@@ -142,7 +142,7 @@ spec:
                     }
                 }, Hey: {
                     container("hey") {
-                        sh 'hey -n 1000 -c 100 http://cat-nip-staging > perf.txt'
+                        sh 'hey -n 1000 -c 100 http://cat-nip-staging.build > perf.txt'
                         archiveArtifacts 'perf.txt'
                     }
                 }
