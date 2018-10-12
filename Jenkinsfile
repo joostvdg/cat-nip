@@ -122,8 +122,8 @@ spec:
                         sh "helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG} --set nameOverride=cat-nip-staging"
                         sh 'helm ls'
                     }
-
                 }
+                input 'Let\'s Go!'
                 parallel Kubectl: {
                     container("kubectl") {
                         sh 'kubectl version'
@@ -149,11 +149,10 @@ spec:
             } catch(e) {
                 error "Failed functional tests"
             } finally {
-                input 'Let\'s Go!'
                 container("helm") {
                     withCredentials([file(credentialsId: 'letsencrypt-staging-ca', variable: 'CA_PEM')]) {
                         sh 'helm ls'
-                        sh 'helm delete cat-nip-staging --purge'
+                        sh 'helm del --purge cat-nip-staging'
                     }
                 }
             }
