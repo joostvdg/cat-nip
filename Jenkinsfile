@@ -119,7 +119,7 @@ spec:
                         }
                         sh 'helm repo list'
                         sh 'helm repo update'
-                        sh "helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG}"
+                        sh "helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG} --set nameOverride=cat-nip-staging"
                         sh 'helm ls'
                     }
 
