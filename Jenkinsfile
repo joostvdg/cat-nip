@@ -104,6 +104,15 @@ spec:
                 sh "docker image tag ${IMAGE}:${TAG} ${FULL_NAME}"
                 sh "docker image push ${FULL_NAME}"
             }
+            stage('Tag repo') {
+                gitRemoteConfigByUrl(scmVars.GIT_URL, 'githubtoken')
+                sh '''
+                git config --global user.email "jenkins@jenkins.io"
+                git config --global user.name "Jenkins"
+                '''
+                def NEW_VERSION = gitNextSemverTag(VERSION)
+                gitTag("v${NEW_VERSION}")
+            }
             stage('Anchore Validation') {
                 anchoreScan("${FULL_IMAGE_NAME}")
             } // end stage
@@ -170,13 +179,6 @@ spec:
                 sh "docker image tag ${STAGING} ${PRD}"
                 sh "docker image push ${PRD}"
             }
-        }
-        stage('Tag repo') {
-            gitRemoteConfigByUrl(scmVars.GIT_URL, 'githubtoken')
-            sh '''
-                git config --global user.email "jenkins@jenkins.io"
-                git config --global user.name "Jenkins"
-                '''
         }
         stage('Update PROD') {
             // TODO: create PR for environment config
