@@ -208,6 +208,8 @@ spec:
             // TODO: create PR for environment config
             def gitInfo = git 'https://github.com/joostvdg/environments.git'
             echo "${gitInfo}"
+            def branchName = "chart-${CHART_NAME}-${DOCKER_IMAGE_TAG_PRD}"
+            sh "git checkout -b ${branchName}"
             container('yq') {
                 script {
                     sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
@@ -215,13 +217,15 @@ spec:
                     sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
                 }
             }
-            // just the jnlp containr (=default)
             sh 'git status'
-//            gitRemoteConfigByUrl(scmVars.GIT_URL, 'githubtoken')
-//            sh '''
-//                git config --global user.email "jenkins@jenkins.io"
-//                git config --global user.name "Jenkins"
-//                '''
+            gitRemoteConfigByUrl(gitInfo.GIT_URL, 'githubtoken')
+            sh '''git config --global user.email "jenkins@jenkins.io"
+                git config --global user.name "Jenkins"
+            '''
+            sh """git add cb/aws-eks/cat-nip/image-values.yml
+            git commit -m "update ${CHART_NAME} to image  ${DOCKER_IMAGE_TAG_PRD}"
+            git push origin ${branchName}
+            """
         }
     } // end node random label
 } // end pod def
