@@ -110,7 +110,7 @@ spec:
                 git config --global user.email "jenkins@jenkins.io"
                 git config --global user.name "Jenkins"
                 '''
-                def NEW_VERSION = gitNextSemverTag(VERSION)
+                def NEW_VERSION = gitNextSemverTag("${VERSION}")
                 gitTag("v${NEW_VERSION}")
             }
             stage('Anchore Validation') {
