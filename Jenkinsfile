@@ -149,6 +149,7 @@ spec:
             } catch(e) {
                 error "Failed functional tests"
             } finally {
+                input 'Let\'s Go!'
                 container("helm") {
                     withCredentials([file(credentialsId: 'letsencrypt-staging-ca', variable: 'CA_PEM')]) {
                         sh 'helm ls'
