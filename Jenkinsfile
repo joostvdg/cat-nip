@@ -15,6 +15,9 @@ currentBuild.displayName = new SimpleDateFormat("yy.MM.dd").format(new Date()) +
 
 def label = "jenkins-slave-${UUID.randomUUID().toString()}"
 def CHART_VERSION = ''
+def CM_CREDS = 'chartmuseum'
+def CHART_NAME = 'cat-nip'
+def CM_ADDR = 'https://charts.kearos.net'
 def VERSION = ''
 def DOCKER_IMAGE_TAG = ''
 def FULL_IMAGE_NAME = ''
@@ -24,6 +27,7 @@ def FULL_NAME = ''
 def DOCKER_IMAGE_TAG_PRD = ''
 def DOCKER_REPO_NAME = 'caladreas'
 def DOCKER_IMAGE_NAME = 'cat-nip'
+
 def scmVars
 // TODO: introduce specific namespace
 // TODO: introduce service account
@@ -117,6 +121,20 @@ spec:
                 anchoreScan("${FULL_IMAGE_NAME}")
             } // end stage
         } // end node docker
+        stage('Update Chart') {
+            def chartExists = chartExists("${CM_ADDR}", "${CHART_NAME}","${CHART_VERSION}", "200", "${CM_CREDS}", true)
+            if (chartExists) {
+                echo "Chart already exists, not uploading"
+            } else {
+                container("helm") {
+                    withCredentials([usernamePassword(credentialsId: 'chartmuseum', passwordVariable: 'PSS', usernameVariable: 'USR')]) {
+                        sh 'helm package helm/cat-nip'
+                        def result = sh returnStdout: true, script: "curl --insecure -u ${USR}:${PSS} --data-binary \"@cat-nip-${CHART_VERSION}.tgz\" ${CM_ADDR}/api/charts"
+                        echo "Result=${result}"
+                    }
+                }
+            }
+        }
         stage("Staging") {
             try {
                 container("helm") {
