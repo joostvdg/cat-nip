@@ -223,7 +223,7 @@ spec:
                 """
 
                 // TODO: create PR
-                sh """hub  --no-edit --labels ${CHART_NAME},${env.BUILD_TAG} -m "update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD} \
+                sh """hub pull-request --no-edit --labels ${CHART_NAME},${env.BUILD_TAG} -m "update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD} \
                     This pr is automatically generated via Jenkins. \
                     The job: ${env.JOB_URL}" 
                 """
