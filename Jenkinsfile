@@ -222,11 +222,14 @@ spec:
                 git push origin ${branchName}
                 """
 
+
+                writeFile encoding: 'UTF-8', file: 'pr-info.md', text: """update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD} 
+                This pr is automatically generated via Jenkins.
+                The job: ${env.JOB_URL}"""
+
                 // TODO: create PR
-                sh """hub pull-request --no-edit --labels '${CHART_NAME}','Jenkins' -m \"update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD} \
-                    This pr is automatically generated via Jenkins. \
-                    The job: ${env.JOB_URL}\" 
-                """
+                // Do we need '--no-edit' ?
+                sh "hub pull-request -F pr-info.md -l '${CHART_NAME}'"
             }
         }
     } // end node random label
