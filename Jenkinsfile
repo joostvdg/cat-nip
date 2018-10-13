@@ -219,13 +219,13 @@ spec:
                     git push origin ${branchName}
                     """
 
-
+                    // has to be indented like that, else the indents will be in the pr description
                     writeFile encoding: 'UTF-8', file: 'pr-info.md', text: """update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD} 
-                    This pr is automatically generated via Jenkins.
-                    The job: ${env.JOB_URL}"""
-
-                    // TODO: create PR
-                    // Do we need '--no-edit' ? -> yes we do, else we get a prompt
+\n
+This pr is automatically generated via Jenkins.\\n
+\n
+The job: ${env.JOB_URL}
+                    """
 
                     withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GITHUB_PASSWORD', usernameVariable: 'GITHUB_USER')]) {
                         sh """
