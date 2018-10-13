@@ -152,21 +152,16 @@ spec:
                         sh 'helm ls'
                     }
                 }
-                parallel Kubectl: {
+                parallel Zap: {
                     container("kubectl") {
-                        sh 'kubectl version'
-                    }
-                }, Zap: {
-//                    container("zapcli") {
-//                        sh 'zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging > zap.json'
-//                        archiveArtifacts 'zap.json'
-//                    }
-                    container("kubectl") {
-                        sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging.build'
-                        sleep 30
-                        sh 'kubectl logs zapcli > zap.json'
-                        archiveArtifacts 'zap.json'
-                        sh 'kubectl delete pod zapcli'
+                        try {
+                            sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging.build'
+                            sleep 45
+                            sh 'kubectl logs zapcli > zap.json'
+                            archiveArtifacts 'zap.json'
+                        } finally {
+                            sh 'kubectl delete pod zapcli'
+                        }
                     }
                 }, Hey: {
                     container("hey") {
@@ -213,24 +208,32 @@ spec:
                 }
             }
             container('hub') {
-                sh 'git status'
-                gitRemoteConfigByUrl(gitInfo.GIT_URL, 'githubtoken')
-                sh '''git config --global user.email "jenkins@jenkins.io"
-                    git config --global user.name "Jenkins"
-                '''
-                sh """git add cb/aws-eks/cat-nip/image-values.yml
-                git commit -m "update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD}"
-                git push origin ${branchName}
-                """
+                timeout(time: 30, unit: 'SECONDS') {
+                    sh 'git status'
+                    gitRemoteConfigByUrl(gitInfo.GIT_URL, 'githubtoken')
+                    sh '''git config --global user.email "jenkins@jenkins.io"
+                        git config --global user.name "Jenkins"
+                    '''
+                    sh """git add cb/aws-eks/cat-nip/image-values.yml
+                    git commit -m "update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD}"
+                    git push origin ${branchName}
+                    """
 
 
-                writeFile encoding: 'UTF-8', file: 'pr-info.md', text: """update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD} 
-                This pr is automatically generated via Jenkins.
-                The job: ${env.JOB_URL}"""
+                    writeFile encoding: 'UTF-8', file: 'pr-info.md', text: """update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD} 
+                    This pr is automatically generated via Jenkins.
+                    The job: ${env.JOB_URL}"""
 
-                // TODO: create PR
-                // Do we need '--no-edit' ? -> yes we do, else we get a prompt
-                sh "hub pull-request -F pr-info.md -l '${CHART_NAME}' --no-edit"
+                    // TODO: create PR
+                    // Do we need '--no-edit' ? -> yes we do, else we get a prompt
+
+                    withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GITHUB_PASSWORD', usernameVariable: 'GITHUB_USER')]) {
+                        sh """
+                        set +x
+                        hub pull-request --force -F pr-info.md -l '${CHART_NAME}' --no-edit
+                        """
+                    }
+                }
             }
         }
     } // end node random label
