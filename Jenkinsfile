@@ -3,15 +3,6 @@
 import java.text.SimpleDateFormat
 
 currentBuild.displayName = new SimpleDateFormat("yy.MM.dd").format(new Date()) + "-" + env.BUILD_NUMBER
-//env.REPO = "https://github.com/vfarcic/go-demo-3.git"
-//env.IMAGE = "vfarcic/go-demo-3"
-//env.ADDRESS = "go-demo-3-${env.BUILD_NUMBER}-${env.BRANCH_NAME}.acme.com"
-//env.CM_ADDR = "cm.acme.com"
-//env.TAG = "${currentBuild.displayName}"
-//env.TAG_BETA = "${env.TAG}-${env.BRANCH_NAME}"
-//env.CHART_VER = "0.0.1"
-//env.CHART_NAME = "go-demo-3-${env.BUILD_NUMBER}-${env.BRANCH_NAME}"
-
 
 def label = "jenkins-slave-${UUID.randomUUID().toString()}"
 def CHART_VERSION = ''
@@ -58,6 +49,10 @@ spec:
     tty: true
   - name: hey
     image:  caladreas/rakyll-hey
+    command: ["cat"]
+    tty: true
+  - name: hub
+    image:  caladreas/hub
     command: ["cat"]
     tty: true  
 """
@@ -216,17 +211,23 @@ spec:
                     sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
                 }
             }
-            sh 'git status'
-            gitRemoteConfigByUrl(gitInfo.GIT_URL, 'githubtoken')
-            sh '''git config --global user.email "jenkins@jenkins.io"
-                git config --global user.name "Jenkins"
-            '''
-            sh """git add cb/aws-eks/cat-nip/image-values.yml
-            git commit -m "update ${CHART_NAME} to image  ${DOCKER_IMAGE_TAG_PRD}"
-            git push origin ${branchName}
-            """
+            container('hub') {
+                sh 'git status'
+                gitRemoteConfigByUrl(gitInfo.GIT_URL, 'githubtoken')
+                sh '''git config --global user.email "jenkins@jenkins.io"
+                    git config --global user.name "Jenkins"
+                '''
+                sh """git add cb/aws-eks/cat-nip/image-values.yml
+                git commit -m "update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD}"
+                git push origin ${branchName}
+                """
 
-            // TODO: create PR
+                // TODO: create PR
+                sh """hub  --no-edit --labels ${CHART_NAME},${env.BUILD_TAG} -m "update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD} \
+                    This pr is automatically generated via Jenkins. \
+                    The job: ${env.JOB_URL}" 
+                """
+            }
         }
     } // end node random label
 } // end pod def

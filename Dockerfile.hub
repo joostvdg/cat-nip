@@ -1,0 +1,6 @@
+FROM golang:1.9 AS build
+ADD . /src
+WORKDIR /src
+RUN go get -v github.com/rakyll/hey
+# RUN hey -n 1000 -c 100 https://catnip.kearos.net/
+
