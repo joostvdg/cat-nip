@@ -124,6 +124,7 @@ spec:
         }
         stage('Update Chart') {
             container("helm") {
+                sh returnStdout: true, script: 'helm lint helm/cat-nip'
                 def chartExists = chartExists("${CM_ADDR}", "${CHART_NAME}", "${CHART_VERSION}", "200", "${CM_CREDS}", true)
                 if (chartExists) {
                     echo "Chart already exists, not uploading"
@@ -228,8 +229,8 @@ spec:
                 The job: ${env.JOB_URL}"""
 
                 // TODO: create PR
-                // Do we need '--no-edit' ?
-                sh "hub pull-request -F pr-info.md -l '${CHART_NAME}'"
+                // Do we need '--no-edit' ? -> yes we do, else we get a prompt
+                sh "hub pull-request -F pr-info.md -l '${CHART_NAME}' --no-edit"
             }
         }
     } // end node random label
