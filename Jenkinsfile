@@ -97,11 +97,15 @@ spec:
     }
     stages {
         stage('SCM & Prepare') {
-            scmVars = checkout scm
-            def chart = readYaml file: 'helm/cat-nip/Chart.yaml'
-            CHART_VERSION = chart.version
-            def jenkinsConfig = readYaml file: 'jenkins.yml'
-            VERSION = jenkinsConfig.version
+            steps {
+                script {
+                    scmVars = checkout scm
+                    def chart = readYaml file: 'helm/cat-nip/Chart.yaml'
+                    CHART_VERSION = chart.version
+                    def jenkinsConfig = readYaml file: 'jenkins.yml'
+                    VERSION = jenkinsConfig.version
+                }
+            }
         }
         stage('Analysis') {
             environment {
