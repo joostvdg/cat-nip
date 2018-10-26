@@ -14,6 +14,11 @@ spec:
     image: caladreas/helm:2.11.0
     command: ["cat"]
     tty: true
+  - name: golang
+    image: golang:1.11
+    command:
+    - cat
+    tty: true
   - name: hadolint
     image: hadolint/hadolint:latest-debian
     command:
@@ -52,15 +57,7 @@ spec:
     volumeMounts:
       - name: jenkins-docker-cfg
         mountPath: /root
-      - name: go-build-cache
-        mountPath: /root/.cache/go-build
-      - name: img-build-cache
-        mountPath: /root/.local
   volumes:
-  - name: go-build-cache
-    emptyDir: {}
-  - name: img-build-cache
-    emptyDir: {}
   - name: jenkins-docker-cfg
     projected:
       sources:
@@ -146,12 +143,15 @@ spec:
                     DOCKER_IMAGE_TAG =  "${DOCKER_IMAGE_TAG_PRD}" + "${env.BRANCH_NAME}"
                     FULL_IMAGE_NAME = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                 }
+                container('golang') {
+                    sh './build-go-bin.sh'
+                }
                 container(name: 'kaniko', shell: '/busybox/sh') {
                     echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}"
                     echo "DOCKER_IMAGE_TAG_PRD=${DOCKER_IMAGE_TAG_PRD}"
                     echo "FULL_IMAGE_NAME=${FULL_IMAGE_NAME}"
                     sh """#!/busybox/sh
-                    /kaniko/executor -f `pwd`/Dockerfile -c `pwd` --cache=true --destination=index.docker.io/caladreas/cat:${DOCKER_IMAGE_TAG}
+                    /kaniko/executor -f `pwd`/Dockerfile.run -c `pwd` --cache=true --destination=index.docker.io/${FULL_IMAGE_NAME}
                     """
                 }
             }
