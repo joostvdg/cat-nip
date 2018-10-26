@@ -133,6 +133,14 @@ spec:
                 )
             }
         }
+        // has to be separate from the Kaniko build, as it maligns the path
+        stage('Go build') {
+            steps {
+                container('golang') {
+                    sh './build-go-bin.sh'
+                }
+            }
+        }
         stage('Kaniko Build') {
             environment {
                 PATH = "/busybox:$PATH"
@@ -142,9 +150,6 @@ spec:
                     DOCKER_IMAGE_TAG_PRD = gitNextSemverTag("${VERSION}")
                     DOCKER_IMAGE_TAG =  "${DOCKER_IMAGE_TAG_PRD}" + "${env.BRANCH_NAME}"
                     FULL_IMAGE_NAME = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-                }
-                container('golang') {
-                    sh './build-go-bin.sh'
                 }
                 container(name: 'kaniko', shell: '/busybox/sh') {
                     echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}"
