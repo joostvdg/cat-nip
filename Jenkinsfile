@@ -115,6 +115,9 @@ spec:
                 parallel(
                     Sonar: {
                         container('sonar') {
+                            // because the workspace is automatically mounted via the jnlp agent
+                            // and the sonar scanner image is fixed on /root/src, we first create a symlink
+                            sh "ln -s ${WORKSPACE} /root/src"
                             sh '''sonar-scanner \
                               -Dsonar.projectName=cat-nip \
                               -Dsonar.projectKey=joostvdg_cat-nip \
@@ -126,7 +129,9 @@ spec:
                         }
                     },
                     DockerLint: {
-                        dockerfileLintK8s()
+                        container('hadolint') {
+                            dockerfileLintK8s()
+                        }
                     }
                 )
             }
