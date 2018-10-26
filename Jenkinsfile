@@ -264,13 +264,12 @@ spec:
         stage('Promote Image') {
             environment {
                 PRD = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG_PRD}"
+                PATH = "/busybox:$PATH"
             }
             steps {
-                container(name: 'kaniko', shell: '/busybox/sh') {
-                    sh '''#!/busybox/sh
-                    /kaniko/executor -f `pwd`/Dockerfile -c `pwd` --cache=true --destination=index.docker.io/${PRD}
-                    '''
-                }
+                sh """#!/busybox/sh
+                    /kaniko/executor -f `pwd`/Dockerfile.run -c `pwd` --cache=true --destination=index.docker.io/${PRD}
+                    """
             }
         }
         stage('Update PROD') {
