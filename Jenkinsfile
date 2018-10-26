@@ -202,25 +202,27 @@ spec:
                     helm ls
                     '''
                 }
-                parallel Zap: {
-                    container("kubectl") {
-                        script {
-                            try {
-                                sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging.build'
-                                sleep 45
-                                sh 'kubectl logs zapcli > zap.json'
-                                archiveArtifacts 'zap.json'
-                            } finally {
-                                sh 'kubectl delete pod zapcli'
+                parallel(
+                    ZAP: {
+                        container("kubectl") {
+                            script {
+                                try {
+                                    sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging.build'
+                                    sleep 45
+                                    sh 'kubectl logs zapcli > zap.json'
+                                    archiveArtifacts 'zap.json'
+                                } finally {
+                                    sh 'kubectl delete pod zapcli'
+                                }
                             }
                         }
+                    }, Hey: {
+                        container("hey") {
+                            sh 'hey -n 1000 -c 100 http://cat-nip-staging.build > perf.txt'
+                            archiveArtifacts 'perf.txt'
+                        }
                     }
-                }, Hey: {
-                    container("hey") {
-                        sh 'hey -n 1000 -c 100 http://cat-nip-staging.build > perf.txt'
-                        archiveArtifacts 'perf.txt'
-                    }
-                }
+                )
             }
             post {
                 always {
