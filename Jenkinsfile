@@ -212,7 +212,7 @@ spec:
                             // avoid multiple sh's, this causes inter machine/process round trips
                             sh '''helm version
                             helm ls
-                            helm repo add chartmuseum https://charts.kearos.net --username $CM_USR} --password ${CM_PSW} --ca-file ${CA_PEM}"
+                            helm repo add chartmuseum https://charts.kearos.net --username $CM_USR} --password ${CM_PSW} --ca-file ${CA_PEM}
                             helm repo list
                             helm repo update
                             helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG} --set nameOverride=cat-nip-staging
