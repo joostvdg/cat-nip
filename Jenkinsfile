@@ -267,9 +267,11 @@ spec:
                 PATH = "/busybox:$PATH"
             }
             steps {
-                sh """#!/busybox/sh
-                    /kaniko/executor -f `pwd`/Dockerfile.run -c `pwd` --cache=true --destination=index.docker.io/${PRD}
-                    """
+                container(name: 'kaniko', shell: '/busybox/sh') {
+                    sh """#!/busybox/sh
+                        /kaniko/executor -f `pwd`/Dockerfile.run -c `pwd` --cache=true --destination=index.docker.io/${PRD}
+                        """
+                }
             }
         }
         stage('Update PROD') {
