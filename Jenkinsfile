@@ -279,7 +279,7 @@ spec:
                 // TODO: can we do this within environment {} ?
                 script {
                     envGitInfo = git 'https://github.com/joostvdg/environments.git'
-                    echo "${gitInfo}"
+                    echo "${envGitInfo}"
                     envBranchName = "chart-${CHART_NAME}-${DOCKER_IMAGE_TAG_PRD}"
                 }
 
