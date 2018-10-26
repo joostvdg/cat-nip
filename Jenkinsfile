@@ -181,7 +181,9 @@ spec:
             when {
                 not {// if with this version does NOT exist
                     expression {
-                        chartExists("${CM_ADDR}", "${CHART_NAME}", "${CHART_VERSION}", "200", "${CM_CREDS}", true)
+                        container("helm") {
+                            chartExists("${CM_ADDR}", "${CHART_NAME}", "${CHART_VERSION}", "200", "${CM_CREDS}", true)
+                        }
                     }
                 }
             }
