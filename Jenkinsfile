@@ -147,6 +147,9 @@ spec:
                     FULL_IMAGE_NAME = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                 }
                 container(name: 'kaniko', shell: '/busybox/sh') {
+                    echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}"
+                    echo "DOCKER_IMAGE_TAG_PRD=${DOCKER_IMAGE_TAG_PRD}"
+                    echo "FULL_IMAGE_NAME=${FULL_IMAGE_NAME}"
                     sh """#!/busybox/sh
                     /kaniko/executor -f `pwd`/Dockerfile -c `pwd` --cache=true --destination=index.docker.io/caladreas/cat:${DOCKER_IMAGE_TAG}
                     """
