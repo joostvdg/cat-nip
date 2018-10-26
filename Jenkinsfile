@@ -148,7 +148,7 @@ spec:
             steps {
                 script {
                     DOCKER_IMAGE_TAG_PRD = gitNextSemverTag("${VERSION}")
-                    DOCKER_IMAGE_TAG =  "${DOCKER_IMAGE_TAG_PRD}" + "${env.BRANCH_NAME}"
+                    DOCKER_IMAGE_TAG =  "${DOCKER_IMAGE_TAG_PRD}" + "-" + "${env.BRANCH_NAME}"
                     FULL_IMAGE_NAME = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                 }
                 container(name: 'kaniko', shell: '/busybox/sh') {
