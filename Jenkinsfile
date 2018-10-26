@@ -191,20 +191,24 @@ spec:
                 CM = credentials("${CM_CREDS}")
             }
             steps {
-                container("helm") {
-                    // avoid multiple sh's, this causes inter machine/process round trips
-                    sh '''helm version
-                    helm ls
-                    helm repo add chartmuseum https://charts.kearos.net --username $CM_USR} --password ${CM_PSW} --ca-file ${CA_PEM}"
-                    helm repo list
-                    helm repo update
-                    helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG} --set nameOverride=cat-nip-staging
-                    helm ls
-                    '''
-                }
                 parallel(
+                    HelmInstall: {
+                        container("helm") {
+                            // avoid multiple sh's, this causes inter machine/process round trips
+                            sh '''helm version
+                            helm ls
+                            helm repo add chartmuseum https://charts.kearos.net --username $CM_USR} --password ${CM_PSW} --ca-file ${CA_PEM}"
+                            helm repo list
+                            helm repo update
+                            helm install --name cat-nip-staging chartmuseum/cat-nip --set image.tag=${DOCKER_IMAGE_TAG} --set nameOverride=cat-nip-staging
+                            helm ls
+                            '''
+                        }
+                    },
                     ZAP: {
                         container("kubectl") {
+                            // wait for helm install to succeed
+                            sleep 20
                             script {
                                 try {
                                     sh 'kubectl run zapcli --image=owasp/zap2docker-stable --restart=Never -- zap-cli quick-scan -sc -f json --start-options \'-config api.disablekey=true\' http://cat-nip-staging.build'
@@ -217,6 +221,8 @@ spec:
                             }
                         }
                     }, Hey: {
+                        // wait for helm install to succeed
+                        sleep 20
                         container("hey") {
                             sh 'hey -n 1000 -c 100 http://cat-nip-staging.build > perf.txt'
                             archiveArtifacts 'perf.txt'
