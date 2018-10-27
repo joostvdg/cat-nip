@@ -1,0 +1,7 @@
+organization=joostvdg-github
+projectKey=joostvdg_cat-nip
+serverUrl=https://sonarcloud.io
+serverVersion=7.4.0.18669
+dashboardUrl=https://sonarcloud.io/dashboard?id=joostvdg_cat-nip
+ceTaskId=AWa1f1l_94ApvXY3cQDL
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AWa1f1l_94ApvXY3cQDL
