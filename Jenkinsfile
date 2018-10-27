@@ -275,18 +275,25 @@ spec:
             }
         }
         stage('Update PROD') {
+            when {
+                branch 'master'
+            }
+            environment {
+                PR_CHANGE_NAME = "chart-${CHART_NAME}-${DOCKER_IMAGE_TAG_PRD}"
+                IMAGE_TAG = "${DOCKER_IMAGE_TAG_PRD}"
+                CHART = "${CHART_NAME}"
+            }
             steps {
                 // TODO: can we do this within environment {} ?
                 script {
                     envGitInfo = git 'https://github.com/joostvdg/environments.git'
                     echo "${envGitInfo}"
-                    envBranchName = "chart-${CHART_NAME}-${DOCKER_IMAGE_TAG_PRD}"
                 }
 
-                sh "git checkout -b ${branchName}"
+                sh 'git checkout -b ${PR_CHANGE_NAME}'
                 container('yq') {
                     sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
-                    sh "yq w -i cb/aws-eks/cat-nip/image-values.yml image.tag ${DOCKER_IMAGE_TAG_PRD}"
+                    sh 'yq w -i cb/aws-eks/cat-nip/image-values.yml image.tag ${IMAGE_TAG}'
                     sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
                 }
                 container('hub') {
@@ -295,13 +302,13 @@ spec:
                     sh '''git config --global user.email "jenkins@jenkins.io"
                         git config --global user.name "Jenkins"
                     '''
-                    sh """git add cb/aws-eks/cat-nip/image-values.yml
-                    git commit -m "update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD}"
-                    git push origin ${branchName}
-                    """
+                    sh '''git add cb/aws-eks/cat-nip/image-values.yml
+                    git commit -m "update ${CHART} to image ${IMAGE_TAG}"
+                    git push origin ${PR_CHANGE_NAME}
+                    '''
 
                     // has to be indented like that, else the indents will be in the pr description
-                    writeFile encoding: 'UTF-8', file: 'pr-info.md', text: """update ${CHART_NAME} to image ${DOCKER_IMAGE_TAG_PRD} 
+                    writeFile encoding: 'UTF-8', file: 'pr-info.md', text: """update ${CHART} to image ${IMAGE_TAG} 
 \n
 This pr is automatically generated via Jenkins.\\n
 \n
@@ -309,12 +316,12 @@ The job: ${env.JOB_URL}
                     """
 
                     // TODO: unfortunately, environment {}'s credentials have fixed environment variable names
-                    // TODO: in this case, they need to be EACTLY GITHUB_PASSWORD and GITHUB_USER
+                    // TODO: in this case, they need to be EXACTLY GITHUB_PASSWORD and GITHUB_USER
                     script {
                         withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GITHUB_PASSWORD', usernameVariable: 'GITHUB_USER')]) {
                             sh """
                             set +x
-                            hub pull-request --force -F pr-info.md -l '${CHART_NAME}' --no-edit
+                            hub pull-request --force -F pr-info.md -l '${CHART}' --no-edit
                             """
                         }
                     }
