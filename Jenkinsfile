@@ -301,7 +301,7 @@ spec:
                 }
                 container('hub') {
                     sh 'git status'
-                    gitRemoteConfigByUrl(gitInfo.GIT_URL, 'githubtoken')
+                    gitRemoteConfigByUrl(envGitInfo.GIT_URL, 'githubtoken')
                     sh '''git config --global user.email "jenkins@jenkins.io"
                         git config --global user.name "Jenkins"
                     '''
