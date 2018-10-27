@@ -262,6 +262,9 @@ spec:
             }
         } // end stage
         stage('Promote Image') {
+            when {
+                branch 'master'
+            }
             environment {
                 PRD = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG_PRD}"
                 PATH = "/busybox:$PATH"
