@@ -134,32 +134,17 @@ spec:
                 )
             }
         }
-        // has to be separate from the Kaniko build, as it maligns the path
-        stage('Go build') {
-            steps {
-                container('golang') {
-                    sh './build-go-bin.sh'
-                }
-            }
-        }
-        stage('Kaniko Build') {
-            environment {
-                PATH = "/busybox:$PATH"
-            }
+        stage('Build') {
             steps {
                 script {
                     DOCKER_IMAGE_TAG_PRD = gitNextSemverTag("${VERSION}")
                     DOCKER_IMAGE_TAG =  "${DOCKER_IMAGE_TAG_PRD}" + "-" + "${env.BRANCH_NAME}"
                     FULL_IMAGE_NAME = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                 }
-                container(name: 'kaniko', shell: '/busybox/sh') {
-                    echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}"
-                    echo "DOCKER_IMAGE_TAG_PRD=${DOCKER_IMAGE_TAG_PRD}"
-                    echo "FULL_IMAGE_NAME=${FULL_IMAGE_NAME}"
-                    sh """#!/busybox/sh
-                    /kaniko/executor -f `pwd`/Dockerfile.run -c `pwd` --cache=true --destination=index.docker.io/${FULL_IMAGE_NAME}
-                    """
+                container('golang') {
+                    sh './build-go-bin.sh'
                 }
+                kanikoBuild("index.docker.io/${FULL_IMAGE_NAME}", 'Dockerfile.run')
             }
         }
         stage('Tag repo') {
@@ -188,16 +173,8 @@ spec:
                     }
                 }
             }
-            environment {
-                CM = credentials("${CM_CREDS}")
-            }
             steps {
-                container("helm") {
-                    // TODO: do something with helm lint errors
-                    sh 'helm lint helm/cat-nip'
-                    sh 'helm package helm/cat-nip'
-                    sh 'curl --insecure -u $CM_USR}:${CM_PSW} --data-binary \"@cat-nip-${CHART_VERSION}.tgz\" ${CM_ADDR}/api/charts'
-                }
+                chartCreateAndPublish("${CHART_NAME}", "${CHART_VERSION}", "${CM_ADDR}", "${CM_CREDS}")
             }
         }
         stage("Staging") {
@@ -268,14 +245,9 @@ spec:
             }
             environment {
                 PRD = "${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG_PRD}"
-                PATH = "/busybox:$PATH"
             }
             steps {
-                container(name: 'kaniko', shell: '/busybox/sh') {
-                    sh """#!/busybox/sh
-                        /kaniko/executor -f `pwd`/Dockerfile.run -c `pwd` --cache=true --destination=index.docker.io/${PRD}
-                        """
-                }
+                kanikoBuild("index.docker.io/${PRD}", 'Dockerfile.run')
             }
         }
         stage('Update PROD') {
@@ -296,9 +268,7 @@ spec:
 
                 sh 'git checkout -b ${PR_CHANGE_NAME}'
                 container('yq') {
-                    sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
                     sh 'yq w -i cb/aws-eks/cat-nip/image-values.yml image.tag ${IMAGE_TAG}'
-                    sh 'yq r cb/aws-eks/cat-nip/image-values.yml image.tag'
                 }
                 container('hub') {
                     sh 'git status'
