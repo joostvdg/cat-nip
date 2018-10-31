@@ -70,7 +70,8 @@ spec:
         }
     }
     libraries {
-        lib('jenkins-pipeline-library@master')
+        lib('core@master')
+        lib('gitops-k8s@master')
     }
     environment {
         label = "jenkins-slave-catnip"
